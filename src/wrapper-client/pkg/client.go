@@ -29,7 +29,7 @@ type Client struct {
 	/*
 		Privacy settings.
 		Telemetry fields set in this map
-		are redacted before phoning home.
+		are redacted before anything is sent.
 	*/
 	ExcludedTelemetryFields map[string]bool
 
