@@ -1,0 +1,148 @@
+syntax = "proto3";
+package protocol;
+option go_package = ".;protocol";
+
+
+// TCP tunneling
+message TcpDialMessage {
+  uint32 connection_id = 1;
+  string address = 2;
+}
+
+message TcpDialResultMessage {
+  uint32 connection_id = 1;
+  string address = 2;
+  string error = 3;
+}
+
+message TcpWriteMessage {
+  uint32 connection_id = 1;
+  uint64 writer_id = 2;
+  bytes data = 3;
+}
+
+message TcpWriteResultMessage {
+  uint32 connection_id = 1;
+  uint64 writer_id = 2;
+  uint32 bytes_written = 3;
+  string error = 4;
+}
+
+message TcpReadMessage {
+  uint32 connection_id = 1;
+  uint64 reader_id = 2;
+  uint32 buffer_size = 3;
+}
+
+message TcpReadResultMessage {
+  uint32 connection_id = 1;
+  uint64 reader_id = 2;
+  bytes data = 3;
+  uint32 bytes_read = 4;
+  string error = 5;
+}
+
+// Terminal Pty
+message TerminalData {
+  bytes data = 1;
+}
+
+message TerminalWidth {
+  uint32 new_width = 1;
+}
+
+// File browser
+
+message FileRead {
+  string path = 1;
+}
+
+message FileReadResult {
+  bytes data = 1;
+  string path = 2;
+  string error = 3;
+  string mime_type = 4;
+}
+
+message FileReadDir {
+  string path = 1;
+}
+
+message DirEntry {
+  string name = 1;
+  string path = 2;
+  bool is_dir = 3;
+  string mime_type = 4;
+  bool is_empty = 5;
+}
+
+message FileReadDirResult {
+  string error = 1;
+  string path = 2;
+  repeated DirEntry entry = 3;
+}
+
+// Initial message
+message Service {
+  string address = 1;
+}
+
+message Hello {
+  string commit_hash = 1;
+  string branch_name = 2;
+  string pull_request = 3;
+  string slug = 4;
+  string tag = 5;
+  string build_url = 6;
+  string build_id = 7;
+  string job_id = 8;
+  string author_name = 9;
+  string author_avatar = 10;
+  string author_email = 11;
+  string ci_provider = 12;
+  string author_email_domain = 13;
+  repeated Service service = 14;
+}
+
+message HelloResponse {
+  string dashboard_url = 1;
+}
+
+message MessageFromWrapperClient {
+  oneof spec {
+    string error = 1;
+    //TCP
+    TcpWriteResultMessage tcp_write_result = 2;
+    TcpReadResultMessage tcp_read_result = 3;
+    TcpDialResultMessage tcp_dial_result = 4;
+    // Terminal Pty
+    TerminalData terminal_data = 5;
+    // metadata
+    Hello hello = 6;
+    // File browser
+    FileReadResult file_read_result = 7;
+    FileReadDirResult file_read_dir_result = 8;
+  }
+  uint32 listener_id = 10;
+}
+
+message MessageToWrapperClient {
+  oneof spec {
+    string error = 1;
+    // TCP
+    TcpWriteMessage tcp_write_call = 2;
+    TcpReadMessage tcp_read_call = 3;
+    TcpDialMessage tcp_dial_call = 4;
+    // Terminal Pty
+    TerminalData terminal_write = 5;
+    TerminalWidth terminal_width = 6;
+    // File browser
+    FileRead file_read = 7;
+    FileReadDir file_read_dir = 8;
+    // metadata
+    HelloResponse hello_response = 9;
+    // signal to shut down immediately
+    bool close = 10;
+  }
+  uint32 listener_id = 11;
+}

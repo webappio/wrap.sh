@@ -1,0 +1,120 @@
+commands:
+  - name: build_protocol
+    command: |
+      set -eu -o pipefail
+      echo "Building protocol..."
+      if [ -z "$(which protoc)" ]; then
+        echo "You must install protoc: https://github.com/protocolbuffers/protobuf/releases"
+        cd /tmp
+        rm protoc-*.zip || true
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.10.1/protoc-3.10.1-linux-x86_64.zip
+        sudo bash -c '
+          rm -rf /opt/protobuf &&
+          mkdir /opt/protobuf &&
+          cd /opt/protobuf &&
+          unzip /tmp/protoc-3.10.1-linux-x86_64.zip &&
+          find /opt/protobuf/ -type d -exec chmod 755 {} \; &&
+          find /opt/protobuf/ -type f -exec chmod 644 {} \; &&
+          find /opt/protobuf/bin -type f -exec chmod 755 {} \;
+        '
+        echo 'export PATH="$PATH:/opt/protobuf/bin"' >> ~/.bashrc
+        echo 'You must type "source ~/.bashrc" and rerun "sanic run build_protocol" now.'
+        exit 1
+      fi
+      if [ -z "$(which protoc-gen-go)" ]; then
+        echo "Installing protoc-gen-go..."
+        unset GO111MODULE
+        go get -u github.com/golang/protobuf/protoc-gen-go
+        echo "Installed!"
+      fi
+      ( cd src/protocol && protoc -I=. --go_out=. *.proto; )
+  - name: fix_imports
+    command: |
+      set -eu
+      echo "fixing imports for $1..."
+      libraries=($(ls -1 src | sort))
+      cd $1
+      sed -i '\~replace github.com/layer-devops/wrap.sh/src/~d' go.mod
+      replacements=()
+      for lib in "${libraries[@]}"; do
+        replacements+=("replace github.com/layer-devops/wrap.sh/src/$lib => ../$lib")
+      done
+      printf '%s\n' "${replacements[@]}" >> go.mod
+      go mod tidy -v
+  - name: go_mod_vendor
+    command: |
+      set -eu
+      echo "go mod vendor for $1..."
+      cd $1
+      go mod vendor
+  - name: cleanup
+    command: |
+      set -eu -o pipefail
+      echo "Cleaning up..."
+      sanic run build_protocol
+      echo "Fixing imports..."
+      find . -name 'go.mod' | grep -v vendor | xargs -I {} dirname {} | xargs -I {} -P 5 sanic run fix_imports {}
+      find . -name 'go.mod' | grep -v vendor | xargs -I {} dirname {} | xargs -I {} -P 5 sanic run go_mod_vendor {}
+      echo 'Running gofmt...'
+      find . -name '*.go' -not -path "*/vendor/*" -exec gofmt -s -w {} \;
+      echo 'Removing dockerfiles...'
+      # sanic will build random vendored dockerfiles unless we remove them
+      find . -name 'Dockerfile' -path "*/vendor/*" -delete
+      find . -name 'Dockerfile' -path "*/node_modules/*" -delete
+  - name: setup_dns
+    command: |
+      echo "Setting up dnsmasq..."
+      dnsmasq --version >/dev/null 2>&1 || {
+        sudo apt-get update
+        sudo apt-get -y install dnsmasq
+      }
+      sudo systemctl disable dnsmasq
+      sudo sed -i '/dns=dnsmasq/d' /etc/NetworkManager/NetworkManager.conf
+      sudo sed -i '/plugins=/a dns=dnsmasq' /etc/NetworkManager/NetworkManager.conf
+
+      sudo rm /etc/resolv.conf
+      sudo ln -s /var/run/NetworkManager/resolv.conf /etc/resolv.conf
+
+      cat <<EOF | sudo tee /etc/NetworkManager/dnsmasq.d/example.com-wildcard.conf
+      address=/.wraplocal.sh/127.0.0.1
+      address=/wraplocal.sh/127.0.0.1
+      EOF
+      sudo systemctl restart NetworkManager
+  - name: setup_for_development
+    command: |
+      set -eu -o pipefail
+      echo "Setting up for wrap.sh development..."
+      sanic run setup_dns
+      sanic run cleanup
+      echo "Setup complete!"
+
+environments:
+  dev:
+    commands:
+      - name: build
+        command: |
+          set -eu -o pipefail
+          sanic run cleanup
+          mkdir -p bin/dev
+          cd src/wrapper-client
+          export GOOS=linux
+          export GOARCH=amd64
+          export CGO_ENABLED=0
+          echo "Building..."
+          go build -mod=vendor -tags netgo -ldflags '-w -X main.LocalDevBuild=true -X main.DebugLog=true' \
+            -o ../../bin/dev/wrapper-linux-amd64
+          echo "Successfully built bin/dev/wrapper-linux-amd64"
+  prod:
+    commands:
+      - name: build
+        command: |
+          set -eu -o pipefail
+          sanic run cleanup
+          mkdir -p bin/prod
+          cd src/wrapper-client
+          export GOOS=linux
+          export GOARCH=amd64
+          export CGO_ENABLED=0
+          echo "Building..."
+          go build -mod=vendor -tags netgo -ldflags '-w' -o ../../bin/prod/wrapper-linux-amd64
+          echo "Successfully built bin/prod/wrapper-linux-amd64"
