@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -148,6 +149,12 @@ func discoverServices() ([]*protocol.Service, error) {
 func (client *Client) sendHello() error {
 	client.Log("Starting up a debug server...")
 	msg := &protocol.Hello{}
+	// knowing the working directory is handy for the file browser
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		workingDirectory = "/"
+	}
+	msg.WorkingDirectory = workingDirectory
 	client.debugLog("Getting pipeline info...")
 	errs := populatePipelineInfo(msg)
 	if len(errs) > 0 {

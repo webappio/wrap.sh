@@ -101,7 +101,8 @@ message Hello {
   string author_email = 11;
   string ci_provider = 12;
   string author_email_domain = 13;
-  repeated Service service = 14;
+  string working_directory = 14;
+  repeated Service service = 15;
 }
 
 message HelloResponse {
