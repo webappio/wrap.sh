@@ -109,7 +109,7 @@ message HelloResponse {
   string dashboard_url = 1;
 }
 
-message MessageFromWrapperClient {
+message MessageFromWrapClient {
   oneof spec {
     string error = 1;
     //TCP
@@ -127,7 +127,7 @@ message MessageFromWrapperClient {
   uint32 listener_id = 10;
 }
 
-message MessageToWrapperClient {
+message MessageToWrapClient {
   oneof spec {
     string error = 1;
     // TCP

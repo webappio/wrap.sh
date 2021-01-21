@@ -1,8 +1,8 @@
 package protocol
 
 const (
-	WrapperAuthHeaderName = "X-Wrapper-Auth-Token"
-	WrapperServerPath     = "wrapper"
-	ServerDomain          = "wrap.sh"
-	DevServerDomain       = "wraplocal.sh"
+	WrapAuthHeaderName = "X-Wrap-Auth-Token"
+	WrapServerPath     = "wrap"
+	ServerDomain       = "wrap.sh"
+	DevServerDomain    = "wraplocal.sh"
 )

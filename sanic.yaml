@@ -96,14 +96,14 @@ environments:
           set -eu -o pipefail
           sanic run cleanup
           mkdir -p bin/dev
-          cd src/wrapper-client
+          cd src/wrap
           export GOOS=linux
           export GOARCH=amd64
           export CGO_ENABLED=0
           echo "Building..."
           go build -mod=vendor -tags netgo -ldflags '-w -X main.LocalDevBuild=true -X main.DebugLog=true' \
-            -o ../../bin/dev/wrapper-linux-amd64
-          echo "Successfully built bin/dev/wrapper-linux-amd64"
+            -o ../../bin/dev/wrap-linux-amd64
+          echo "Successfully built bin/dev/wrap-linux-amd64"
   prod:
     commands:
       - name: build
@@ -111,10 +111,10 @@ environments:
           set -eu -o pipefail
           sanic run cleanup
           mkdir -p bin/prod
-          cd src/wrapper-client
+          cd src/wrap
           export GOOS=linux
           export GOARCH=amd64
           export CGO_ENABLED=0
           echo "Building..."
-          go build -mod=vendor -tags netgo -ldflags '-w' -o ../../bin/prod/wrapper-linux-amd64
-          echo "Successfully built bin/prod/wrapper-linux-amd64"
+          go build -mod=vendor -tags netgo -ldflags '-w' -o ../../bin/prod/wrap-linux-amd64
+          echo "Successfully built bin/prod/wrap-linux-amd64"

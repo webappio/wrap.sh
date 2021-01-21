@@ -1,4 +1,4 @@
-package wrapper
+package wrap
 
 import (
 	"bytes"
@@ -184,7 +184,7 @@ func (client *Client) close() {
 	close(client.closedChan)
 }
 
-func (client *Client) HandleMessage(message *protocol.MessageToWrapperClient) error {
+func (client *Client) HandleMessage(message *protocol.MessageToWrapClient) error {
 	// some messages are sent by specific listeners on the server side (e.g. file read)
 	listenerId := message.GetListenerId()
 	// TCP

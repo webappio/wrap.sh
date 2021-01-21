@@ -1,4 +1,4 @@
-package wrapper
+package wrap
 
 import (
 	"crypto/tls"
@@ -192,8 +192,8 @@ func (client *Client) sendHello() error {
 		}
 	}
 	msg.Service = services
-	return client.send(&protocol.MessageFromWrapperClient{
-		Spec: &protocol.MessageFromWrapperClient_Hello{
+	return client.send(&protocol.MessageFromWrapClient{
+		Spec: &protocol.MessageFromWrapClient_Hello{
 			Hello: msg,
 		},
 	})

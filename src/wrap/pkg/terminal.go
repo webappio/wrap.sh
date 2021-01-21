@@ -1,4 +1,4 @@
-package wrapper
+package wrap
 
 import (
 	"github.com/creack/pty"
@@ -23,7 +23,7 @@ type terminal struct {
 
 /*
 Starts a local bash shell for running commands sent
-by Wrapper Dashboard users, send any output to the wrap.sh server.
+by Wrap Dashboard users, sends any output to the wrap.sh server.
 */
 func (client *Client) startPty() {
 	bash := exec.Command("bash")
@@ -63,8 +63,8 @@ func (client *Client) startPty() {
 		if n == 0 {
 			continue
 		}
-		err = client.send(&protocol.MessageFromWrapperClient{
-			Spec: &protocol.MessageFromWrapperClient_TerminalData{
+		err = client.send(&protocol.MessageFromWrapClient{
+			Spec: &protocol.MessageFromWrapClient_TerminalData{
 				TerminalData: &protocol.TerminalData{
 					Data: buf[:n],
 				},

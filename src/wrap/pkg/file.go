@@ -1,4 +1,4 @@
-package wrapper
+package wrap
 
 import (
 	"github.com/layer-devops/wrap.sh/src/protocol"
@@ -15,8 +15,8 @@ const maxFileReadSize = 50 * 1024 * 1024
 func (client *Client) handleFileRead(msg *protocol.FileRead, listenerId uint32) error {
 	info, err := os.Stat(msg.GetPath())
 	if err != nil {
-		err = client.send(&protocol.MessageFromWrapperClient{
-			Spec: &protocol.MessageFromWrapperClient_FileReadResult{
+		err = client.send(&protocol.MessageFromWrapClient{
+			Spec: &protocol.MessageFromWrapClient_FileReadResult{
 				FileReadResult: &protocol.FileReadResult{
 					Error: errors.Wrap(err, "stat").Error(),
 				},
@@ -29,8 +29,8 @@ func (client *Client) handleFileRead(msg *protocol.FileRead, listenerId uint32) 
 		return nil
 	}
 	if info.Size() > maxFileReadSize {
-		err = client.send(&protocol.MessageFromWrapperClient{
-			Spec: &protocol.MessageFromWrapperClient_FileReadResult{
+		err = client.send(&protocol.MessageFromWrapClient{
+			Spec: &protocol.MessageFromWrapClient_FileReadResult{
 				FileReadResult: &protocol.FileReadResult{
 					Error: "file too big",
 				},
@@ -44,8 +44,8 @@ func (client *Client) handleFileRead(msg *protocol.FileRead, listenerId uint32) 
 	}
 	content, err := ioutil.ReadFile(msg.GetPath())
 	if err != nil {
-		err = client.send(&protocol.MessageFromWrapperClient{
-			Spec: &protocol.MessageFromWrapperClient_FileReadResult{
+		err = client.send(&protocol.MessageFromWrapClient{
+			Spec: &protocol.MessageFromWrapClient_FileReadResult{
 				FileReadResult: &protocol.FileReadResult{
 					Error: err.Error(),
 				},
@@ -63,8 +63,8 @@ func (client *Client) handleFileRead(msg *protocol.FileRead, listenerId uint32) 
 	if err == nil {
 		mimeType = strings.TrimSpace(strings.TrimPrefix(string(output), msg.GetPath()+":"))
 	}
-	err = client.send(&protocol.MessageFromWrapperClient{
-		Spec: &protocol.MessageFromWrapperClient_FileReadResult{
+	err = client.send(&protocol.MessageFromWrapClient{
+		Spec: &protocol.MessageFromWrapClient_FileReadResult{
 			FileReadResult: &protocol.FileReadResult{
 				Data:     content,
 				Path:     msg.GetPath(),
@@ -117,8 +117,8 @@ func (client *Client) handleFileReadDir(msg *protocol.FileReadDir, listenerId ui
 		return nil
 	})
 	if err != nil {
-		err = client.send(&protocol.MessageFromWrapperClient{
-			Spec: &protocol.MessageFromWrapperClient_FileReadDirResult{
+		err = client.send(&protocol.MessageFromWrapClient{
+			Spec: &protocol.MessageFromWrapClient_FileReadDirResult{
 				FileReadDirResult: &protocol.FileReadDirResult{
 					Error: err.Error(),
 				},
@@ -130,8 +130,8 @@ func (client *Client) handleFileReadDir(msg *protocol.FileReadDir, listenerId ui
 		}
 		return nil
 	}
-	err = client.send(&protocol.MessageFromWrapperClient{
-		Spec: &protocol.MessageFromWrapperClient_FileReadDirResult{
+	err = client.send(&protocol.MessageFromWrapClient{
+		Spec: &protocol.MessageFromWrapClient_FileReadDirResult{
 			FileReadDirResult: result,
 		},
 		ListenerId: listenerId,

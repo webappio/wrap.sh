@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/layer-devops/wrap.sh/src/protocol"
-	wrapper "github.com/layer-devops/wrap.sh/src/wrapper-client/pkg"
+	wrap "github.com/layer-devops/wrap.sh/src/wrap/pkg"
 	"github.com/pborman/getopt"
 	"io/ioutil"
 	"log"
@@ -16,11 +16,11 @@ var DebugLog = "false"
 
 func main() {
 	log.SetFlags(0)
-	wsLoc := "wss://" + protocol.ServerDomain + "/" + protocol.WrapperServerPath
+	wsLoc := "wss://" + protocol.ServerDomain + "/" + protocol.WrapServerPath
 
 	//noinspection GoBoolExpressions
 	if LocalDevBuild == "true" {
-		wsLoc = "ws://" + protocol.DevServerDomain + "/" + protocol.WrapperServerPath
+		wsLoc = "ws://" + protocol.DevServerDomain + "/" + protocol.WrapServerPath
 	}
 
 	authTokenFlag := getopt.StringLong("token", 't', "", "Your wrap.sh authentication token")
@@ -91,7 +91,7 @@ func main() {
 	}
 
 	//noinspection GoBoolExpressions
-	client := &wrapper.Client{
+	client := &wrap.Client{
 		Token:                   authToken,
 		WebsocketLocation:       wsLoc,
 		LogDebug:                DebugLog == "true",
@@ -100,7 +100,7 @@ func main() {
 	}
 
 	// Set an access timeout if one is specified in the settings.
-	// The wrapper client will shut down if not accessed within this amount of minutes
+	// The wrap client will shut down if not accessed within this amount of minutes
 	if t, ok := settings["Timeout"]; ok {
 		timeout, ok := t.(float64)
 		if ok {

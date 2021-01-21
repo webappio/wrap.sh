@@ -1,4 +1,4 @@
-package wrapper
+package wrap
 
 import (
 	"github.com/layer-devops/wrap.sh/src/protocol"
@@ -36,8 +36,8 @@ func (client *Client) handleTcpReadCall(msg *protocol.TcpReadMessage) error {
 			if err != nil {
 				errMsg = err.Error()
 			}
-			err = client.send(&protocol.MessageFromWrapperClient{
-				Spec: &protocol.MessageFromWrapperClient_TcpReadResult{
+			err = client.send(&protocol.MessageFromWrapClient{
+				Spec: &protocol.MessageFromWrapClient_TcpReadResult{
 					TcpReadResult: &protocol.TcpReadResultMessage{
 						ConnectionId: connId,
 						ReaderId:     readerId,
@@ -68,8 +68,8 @@ func (client *Client) handleTcpWriteCall(msg *protocol.TcpWriteMessage) error {
 			if err != nil {
 				errMsg = err.Error()
 			}
-			err = client.send(&protocol.MessageFromWrapperClient{
-				Spec: &protocol.MessageFromWrapperClient_TcpWriteResult{
+			err = client.send(&protocol.MessageFromWrapClient{
+				Spec: &protocol.MessageFromWrapClient_TcpWriteResult{
 					TcpWriteResult: &protocol.TcpWriteResultMessage{
 						ConnectionId: connId,
 						WriterId:     writerId,
@@ -96,7 +96,7 @@ func (client *Client) handleTcpDialCall(msg *protocol.TcpDialMessage) error {
 	if _, exists := client.connections[connectionId]; exists {
 		return errors.New("dial for existing connection")
 	}
-	// establish a new connection, notify wrapper server of the result,
+	// establish a new connection, notify wrap server of the result,
 	// then listen on the connection
 	address := msg.GetAddress()
 	go func() {
@@ -107,10 +107,10 @@ func (client *Client) handleTcpDialCall(msg *protocol.TcpDialMessage) error {
 
 		conn, err := dialer.Dial("tcp", address)
 		if err != nil {
-			// e.g. could not resolve the address; report the issue to the wrapper server
+			// e.g. could not resolve the address; report the issue to the wrap server
 			client.debugLog(errors.Wrap(err, "dial tcp").Error())
-			err = client.send(&protocol.MessageFromWrapperClient{
-				Spec: &protocol.MessageFromWrapperClient_TcpDialResult{
+			err = client.send(&protocol.MessageFromWrapClient{
+				Spec: &protocol.MessageFromWrapClient_TcpDialResult{
 					TcpDialResult: &protocol.TcpDialResultMessage{
 						ConnectionId: connectionId,
 						Error:        err.Error(),
@@ -129,8 +129,8 @@ func (client *Client) handleTcpDialCall(msg *protocol.TcpDialMessage) error {
 		client.connMapWriteMutex.Lock()
 		client.connections[connectionId] = tc
 		client.connMapWriteMutex.Unlock()
-		err = client.send(&protocol.MessageFromWrapperClient{
-			Spec: &protocol.MessageFromWrapperClient_TcpDialResult{
+		err = client.send(&protocol.MessageFromWrapClient{
+			Spec: &protocol.MessageFromWrapClient_TcpDialResult{
 				TcpDialResult: &protocol.TcpDialResultMessage{
 					ConnectionId: connectionId,
 					Address:      conn.RemoteAddr().String(),

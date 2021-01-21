@@ -1,4 +1,4 @@
-package wrapper
+package wrap
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ func (client *Client) read() ([]byte, error) {
 	return client.recvBuf.Bytes(), err
 }
 
-func (client *Client) send(msg *protocol.MessageFromWrapperClient) error {
+func (client *Client) send(msg *protocol.MessageFromWrapClient) error {
 	client.wsWriteMutex.Lock()
 	defer client.wsWriteMutex.Unlock()
 	b, err := proto.Marshal(msg)
@@ -47,7 +47,7 @@ func (client *Client) connectToServer() error {
 		}
 	}
 	header := http.Header{}
-	header.Set(protocol.WrapperAuthHeaderName, client.Token)
+	header.Set(protocol.WrapAuthHeaderName, client.Token)
 	ws, response, err := websocket.DefaultDialer.Dial(client.WebsocketLocation, header)
 	if err != nil {
 		if response != nil {
@@ -84,9 +84,9 @@ func (client *Client) listenServer() {
 			}
 			return
 		}
-		msg := &protocol.MessageToWrapperClient{}
+		msg := &protocol.MessageToWrapClient{}
 		err = proto.Unmarshal(b, msg)
-		err = errors.Wrap(err, "could not parse message from wrapper server")
+		err = errors.Wrap(err, "could not parse message from wrap server")
 		if err != nil {
 			log.Fatal(err)
 		}
