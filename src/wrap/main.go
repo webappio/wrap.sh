@@ -11,15 +11,15 @@ import (
 	"strings"
 )
 
-var LocalDevBuild = "false"
-var DebugLog = "false"
+var localDevBuild = "false"
+var debugLog = "false"
 
 func main() {
 	log.SetFlags(0)
 	wsLoc := "wss://" + protocol.ServerDomain + "/" + protocol.WrapServerPath
 
 	//noinspection GoBoolExpressions
-	if LocalDevBuild == "true" {
+	if localDevBuild == "true" {
 		wsLoc = "ws://" + protocol.DevServerDomain + "/" + protocol.WrapServerPath
 	}
 
@@ -94,7 +94,7 @@ func main() {
 	client := &wrap.Client{
 		Token:                   authToken,
 		WebsocketLocation:       wsLoc,
-		LogDebug:                DebugLog == "true",
+		LogDebug:                debugLog == "true",
 		ExcludedTelemetryFields: excludedTelemetryFields,
 		TestCommand:             testCommand,
 	}

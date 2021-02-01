@@ -87,7 +87,12 @@ commands:
       sanic run setup_dns
       sanic run cleanup
       echo "Setup complete!"
-
+  - name: gotest
+    command: |
+      set -eu -o pipefail
+      find src -name '*_test.go' \
+      | grep -v vendor \
+      | xargs -I {} dirname {} | sort | uniq | xargs -I {} bash -c "cd {} && go test ."
 environments:
   dev:
     commands:
@@ -101,7 +106,7 @@ environments:
           export GOARCH=amd64
           export CGO_ENABLED=0
           echo "Building..."
-          go build -mod=vendor -tags netgo -ldflags '-w -X main.LocalDevBuild=true -X main.DebugLog=true' \
+          go build -mod=vendor -tags netgo -ldflags '-w -X main.localDevBuild=true -X main.debugLog=true' \
             -o ../../bin/dev/wrap-linux-amd64
           echo "Successfully built bin/dev/wrap-linux-amd64"
   prod:

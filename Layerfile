@@ -1,0 +1,36 @@
+FROM vm/ubuntu:18.04
+RUN apt-get update && \
+    apt-get install apt-transport-https ca-certificates curl software-properties-common dnsmasq unzip
+
+#Install go
+RUN curl -fSsL "https://golang.org/dl/go1.14.6.linux-amd64.tar.gz" | tar -C /usr/local -xzf /dev/stdin
+ENV GOPATH ~/go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+
+# Install protobuf compiler
+RUN cd /tmp/ && wget https://github.com/protocolbuffers/protobuf/releases/download/v3.10.1/protoc-3.10.1-linux-x86_64.zip
+RUN rm -rf /opt/protobuf && \
+    mkdir /opt/protobuf && \
+    cd /opt/protobuf && \
+    unzip /tmp/protoc-3.10.1-linux-x86_64.zip && \
+    find /opt/protobuf/ -type d -exec chmod 755 {} \; && \
+    find /opt/protobuf/ -type f -exec chmod 644 {} \; && \
+    find /opt/protobuf/bin -type f -exec chmod 755 {} \;
+ENV PATH $PATH:/opt/protobuf/bin
+
+# Install the build tool (https://sanic.io)
+RUN go get github.com/layer-devops/sanic
+
+# Copy repo files from the current commit
+COPY . /wrap.sh/
+
+# run gotest in all environments
+RUN cd /wrap.sh/ && \
+        sanic env dev sanic run gotest && \
+        sanic env prod sanic run gotest
+
+# ensure that dev and prod clients build
+RUN cd /wrap.sh/ && \
+       sanic env dev sanic run build && \
+       sanic env prod sanic run build
+
