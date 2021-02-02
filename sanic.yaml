@@ -90,6 +90,7 @@ commands:
   - name: gotest
     command: |
       set -eu -o pipefail
+      echo "Running gotest..."
       find src -name '*_test.go' \
       | grep -v vendor \
       | xargs -I {} dirname {} | sort | uniq | xargs -I {} bash -c "cd {} && go test ."
